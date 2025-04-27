@@ -40,4 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-
+# local files
+public/data/batch_tags.csv
+public/images/
