@@ -1,31 +1,13 @@
-// src/components/Navbar.tsx
+'use client';
+import Link from 'next/link';
 
-import React from "react";
-import Link from "next/link";
-
-const Navbar = () => {
+export default function Navbar() {
   return (
-    <nav style={styles.navbar}>
-      <ul style={styles.navList}>
-        <li><Link href="/tags">Tags</Link></li>
-        <li><Link href="/characters">Characters</Link></li>
-        <li><Link href="/ratings">Ratings</Link></li>
-      </ul>
+    <nav className="navbar">
+      <Link href="/">Home</Link>
+      <Link href="/tags">Tags</Link>
+      <Link href="/characters">Characters</Link>
+      <Link href="/ratings">Ratings</Link>
     </nav>
   );
-};
-
-const styles = {
-  navbar: {
-    backgroundColor: "#333",
-    padding: "10px 20px",
-  },
-  navList: {
-    color: "white",
-    listStyleType: "none",
-    display: "flex",
-    gap: "20px",
-  }
-};
-
-export default Navbar;
+}

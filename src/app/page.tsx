@@ -1,39 +1,39 @@
-// src/app/page.tsx
-"use client";
+'use client';
+import { useEffect, useState } from 'react';
+import { fetchData } from './utils/fetchData';
+import ImageCard from './components/ImageCard';
 
-import React, { useState } from "react";
-import FilterBar from "./components/FilterBar";
-import ImageCard from "./components/ImageCard";
+interface ImageData {
+  image: string;
+  tags: string[];
+  character_tags: string[];
+  ratings: string[];
+}
 
-const Page = () => {
-  const [filters, setFilters] = useState<string[]>([]);
+export default function HomePage() {
+  const [images, setImages] = useState<ImageData[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleApplyFilter = () => {
-    // Lógica para aplicar el filtro (esto lo conectamos con la lógica del backend)
-    console.log("Aplicar filtros:", filters);
-  };
-
-  const handleClearFilters = () => {
-    setFilters([]);
-    console.log("Filtros limpiados");
-  };
+  useEffect(() => {
+    fetchData()
+      .then(setImages)
+      .catch((err) => {
+        console.error("Error fetching images:", err);
+        setError("Failed to load images. Please try again later.");
+      });
+  }, []);
 
   return (
     <div>
-      <FilterBar 
-        filters={filters} 
-        setFilters={setFilters} 
-        onApplyFilter={handleApplyFilter} 
-        onClearFilters={handleClearFilters}
-      />
-      <div style={{ display: "flex", flexWrap: "wrap" }}>
-        <ImageCard />
-        <ImageCard />
-        <ImageCard />
-        {/* Más ImageCard según los datos */}
-      </div>
+      {error ? (
+        <div className="error-message">{error}</div>
+      ) : (
+        <div className="gallery">
+          {images.map((img) => (
+            <ImageCard key={img.image} imagePath={img.image} />
+          ))}
+        </div>
+      )}
     </div>
   );
-};
-
-export default Page;
+}
