@@ -1,6 +1,6 @@
 import Papa from "papaparse";
 
-interface ImageData {
+export interface ImageData {
   image: string;
   ratings: string[];
   character_tags: string[];

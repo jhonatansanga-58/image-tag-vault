@@ -1,7 +1,6 @@
 * {
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
 }
 
 body {
@@ -24,11 +23,81 @@ a {
   border-bottom: 1px solid #ccc;
 }
 
+.search-bar {
+  padding-top: 20px;
+  width: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.search-input-div {
+  background-color: white;
+  border-radius: 20px 20px 0 0;
+  width: 500px;
+  min-height: 50px;
+  overflow: hidden;
+  display: flex;
+  justify-content: space-between;
+  border: 1px solid #b9b9b9;
+  border-bottom: none;
+}
+
+.search-input {
+  flex: 1;
+  padding: 0 20px;
+  font-size: 20px;
+  border: none;
+  background-color: transparent;
+  outline: none;
+}
+
+.search-icon {
+  background-color: rgb(227, 227, 227);
+  padding: 0 20px;
+  height: auto;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.suggestions {
+  background: white;
+  width: 500px;
+  border: 1px solid #b9b9b9;
+  border-top: none;
+  position: absolute;
+  top: calc(100% + 0px);
+  z-index: 10;
+  border-radius: 0 0 20px 20px;
+}
+
+.search-input-div.no-suggestions {
+  border-radius: 20px; /* Redondear todos los bordes si no hay sugerencias */
+  border-bottom: 1px solid #b9b9b9; /* Volver a poner el borde abajo */
+}
+
+.suggestions::-webkit-scrollbar {
+  display: none;
+}
+
+.suggestion-item {
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 18px;
+  display: block;
+}
+
+.suggestion-item:hover, .active {
+  background: rgb(227, 227, 227);
+}
+
 .gallery {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  padding: 20px;
+  padding: 10px;
   gap: 10px;
 }
 
@@ -44,6 +113,7 @@ a {
 .image-card:hover {
   transform: scale(1.25);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 9;
 }
 
 .tag-button {
