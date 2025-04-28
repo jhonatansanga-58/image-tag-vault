@@ -30,6 +30,7 @@ export default function HomePage() {
   // Create a ref for the search input div
   const searchInputDivRef = useRef<HTMLDivElement | null>(null);
   const suggestionsDiv = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   // Efecto para cargar las imágenes cuando el componente se monta
   useEffect(() => {
@@ -67,15 +68,31 @@ export default function HomePage() {
     const lastTerm = terms[terms.length - 1];
 
     const results = searchTags(tagsIndex, lastTerm);
-    manageSuggestions(results); // Actualizamos las sugerencias
+    if (
+      results.length === 1 &&
+      results[0].name.toLowerCase() === lastTerm.toLowerCase()
+    ) {
+      manageSuggestions([]); // Si escribiste exactamente el tag, oculta sugerencias
+    } else {
+      manageSuggestions(results); // Si no, sigue mostrando sugerencias
+    }
   }
 
   // Función para agregar un tag seleccionado desde sugerencias
   function handleSelectSuggestion(suggestion: TagInfo) {
-    const newTags = [...selectedTags, suggestion.name];
-    setSelectedTags(newTags);
-    setSearchText(newTags.join(", ") + ", "); // Actualizamos el input mostrando los tags
+    const terms = searchText.split(",").map((term) => term.trim());
+    terms[terms.length - 1] = suggestion.name; // Reemplazamos solo el último término escrito
+    const updatedTags = terms.filter(Boolean); // Quitamos posibles vacíos
+
+    setSelectedTags(updatedTags); // Actualizamos los tags seleccionados
+    setSearchText(updatedTags.join(", ") + ", "); // Actualizamos el input
+
     manageSuggestions([]); // Limpiamos sugerencias
+
+    // Volvemos a enfocar el input para que el usuario siga escribiendo fluido
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 0);
   }
 
   function manageSuggestions(results: TagInfo[]) {
@@ -101,19 +118,26 @@ export default function HomePage() {
       .split(",")
       .map((term) => term.trim())
       .filter(Boolean);
+
+    if (terms.length === 0) {
+      setSelectedTags([]); // ¡Si no hay texto, borra los tags seleccionados también!
+      setFilteredImages(images); // Muestra todas las imágenes
+      manageSuggestions([]); // Borra sugerencias
+      return;
+    }
+
     const tagsToFilter = terms.length > 0 ? terms : selectedTags;
 
     if (tagsToFilter.length === 0) {
       setFilteredImages(images);
-      return;
+    } else {
+      const filtered = images.filter((img) => {
+        const allTags = [...img.tags, ...img.character_tags, ...img.ratings];
+        return tagsToFilter.every((tag) => allTags.includes(tag));
+      });
+      setFilteredImages(filtered);
     }
-
-    const filtered = images.filter((img) => {
-      const allTags = [...img.tags, ...img.character_tags, ...img.ratings];
-      return tagsToFilter.every((tag) => allTags.includes(tag));
-    });
-
-    setFilteredImages(filtered);
+    manageSuggestions([]);
   }
 
   // Función para manejar el "Enter" en el input (aplica filtros)
@@ -155,6 +179,7 @@ export default function HomePage() {
                 className="search-input"
                 type="text"
                 value={searchText}
+                ref={inputRef}
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
                 onFocus={() => setIsInputFocused(true)}
