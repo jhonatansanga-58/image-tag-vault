@@ -1,6 +1,6 @@
 // Este archivo devuelve un ícono apropiado basado en el tipo de tag.
 
-import { TagInfo } from "./buildTagsIndex";
+import { TagInfo } from "../types";
 
 export function getIconForType(type: TagInfo["type"]): string {
   switch (type) {

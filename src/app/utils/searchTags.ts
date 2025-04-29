@@ -1,6 +1,5 @@
 // Este archivo busca dentro del índice de tags sugerencias basadas en el input del usuario.
-
-import { TagInfo } from "./buildTagsIndex";
+import { TagInfo } from "../types";
 
 // Función que filtra y devuelve los tags que coinciden con el texto ingresado
 export function searchTags(tagsIndex: TagInfo[], query: string): TagInfo[] {

@@ -1,13 +1,7 @@
 // Este archivo genera un array de todos los tags únicos del dataset de imágenes
 // con la cantidad de veces que aparece cada uno y el tipo de tag que es.
 
-import { ImageData } from "./fetchData";// Asegúrate que el path sea correcto
-
-export interface TagInfo {
-  name: string;
-  count: number;
-  type: "tag" | "character" | "rating";
-}
+import { TagInfo, ImageData } from "../types";
 
 // Función que recibe todas las imágenes y construye el índice de tags
 export function buildTagsIndex(images: ImageData[]): TagInfo[] {

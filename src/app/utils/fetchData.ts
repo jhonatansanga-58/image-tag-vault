@@ -1,11 +1,5 @@
 import Papa from "papaparse";
-
-export interface ImageData {
-  image: string;
-  ratings: string[];
-  character_tags: string[];
-  tags: string[];
-}
+import { ImageData } from "../types";
 
 export async function fetchData(): Promise<ImageData[]> {
   try {

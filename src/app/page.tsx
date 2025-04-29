@@ -1,23 +1,15 @@
 "use client"; // Indica que este archivo es de cliente y permite el uso de hooks y efectos de React
 import { useEffect, useState, useRef } from "react"; // Import useRef
-import { fetchData } from "./utils/fetchData"; // Importamos la función para obtener datos desde el CSV
-import { buildTagsIndex, TagInfo } from "./utils/buildTagsIndex"; // Importamos la función para construir el índice de tags
 import { searchTags } from "./utils/searchTags"; // Importamos la función de búsqueda
 import { getIconForType } from "./utils/getIconForType"; // Importamos la función de iconos
-
-// Definimos la estructura de los datos que vamos a recibir del CSV
-interface ImageData {
-  image: string;
-  tags: string[];
-  character_tags: string[];
-  ratings: string[];
-}
+import { TagInfo } from "./types"; // Importamos los tipos de datos
+import { useDataContext } from "./contexts/DataContext";
 
 // El componente principal de la página
 export default function HomePage() {
-  const [images, setImages] = useState<ImageData[]>([]); // Estado para almacenar las imágenes originales
-  const [filteredImages, setFilteredImages] = useState<ImageData[]>([]); // Estado para almacenar las imágenes filtradas
-  const [tagsIndex, setTagsIndex] = useState<TagInfo[]>([]); // Estado para almacenar el índice de tags
+  const { images, filteredImages, tagsIndex, setFilteredImages } =
+    useDataContext(); // Obtenemos el contexto de datos
+
   const [searchText, setSearchText] = useState(""); // Texto que el usuario escribe
   const [suggestions, setSuggestions] = useState<TagInfo[]>([]); // Sugerencias de autocompletado
   const [selectedTags, setSelectedTags] = useState<string[]>([]); // Tags seleccionados para el filtro
@@ -34,18 +26,8 @@ export default function HomePage() {
 
   // Efecto para cargar las imágenes cuando el componente se monta
   useEffect(() => {
-    fetchData() // Llamamos a la función para cargar los datos desde el CSV
-      .then((data) => {
-        setImages(data);
-        setFilteredImages(data);
-        setTagsIndex(buildTagsIndex(data)); // Construimos el índice de tags una sola vez
-        manageSuggestions([]); // Limpiamos las sugerencias al cargar
-      }) // Si la carga es exitosa, actualizamos el estado de las imágenes
-      .catch((err) => {
-        // Si hay error, mostramos un mensaje de error
-        console.error("Error fetching images:", err);
-        setError("Failed to load images. Please try again later.");
-      });
+    manageSuggestions([]); // Limpiamos las sugerencias al cargar
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // El array vacío asegura que solo se ejecute una vez al cargar el componente
 
   useEffect(() => {
@@ -100,14 +82,14 @@ export default function HomePage() {
 
     setActiveSuggestionIndex(-1); // Reset al moverse entre sugerencias nuevas
 
-    if (searchInputDivRef.current && suggestionsDiv.current) {
-      if (results.length === 0 || !isInputFocused) {
-        suggestionsDiv.current.style.display = "none";
-        searchInputDivRef.current.classList.add("no-suggestions");
-      } else {
-        suggestionsDiv.current.style.display = "block";
-        searchInputDivRef.current.classList.remove("no-suggestions");
-      }
+    if (!searchInputDivRef.current || !suggestionsDiv.current) return;
+
+    if (results.length === 0 || !isInputFocused) {
+      suggestionsDiv.current.style.display = "none";
+      searchInputDivRef.current.classList.add("no-suggestions");
+    } else {
+      suggestionsDiv.current.style.display = "block";
+      searchInputDivRef.current.classList.remove("no-suggestions");
     }
   }
 
@@ -135,6 +117,13 @@ export default function HomePage() {
         const allTags = [...img.tags, ...img.character_tags, ...img.ratings];
         return tagsToFilter.every((tag) => allTags.includes(tag));
       });
+      if (filtered.length === 0) {
+        setError("No se encontraron imágenes con esos tags.");
+      }
+      else {
+        setError(null); // Limpiamos el error si hay resultados
+      }
+      // Actualizamos las imágenes filtradas
       setFilteredImages(filtered);
     }
     manageSuggestions([]);
@@ -187,6 +176,7 @@ export default function HomePage() {
                   setTimeout(() => {
                     if (!isSelectingSuggestion) {
                       setIsInputFocused(false);
+                      manageSuggestions([]); // 👈 También limpiamos sugerencias al salir del input
                     }
                   }, 100); // Un pequeño delay para que el click en la sugerencia termine primero
                 }}
@@ -225,7 +215,9 @@ export default function HomePage() {
                 >
                   <span>{getIconForType(suggestion.type)} </span>{" "}
                   {/* Muestra el icono */}
-                  <span>{suggestion.name}</span>{" "}
+                  <span>
+                    {suggestion.name} <small>({suggestion.count})</small>
+                  </span>{" "}
                   {/* Muestra el nombre del tag */}
                 </div>
               ))}
