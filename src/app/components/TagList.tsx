@@ -11,7 +11,9 @@ interface TagListProps {
 export default function TagList({ tags, filterType }: TagListProps) {
   const router = useRouter();
 
-  const filteredTags = tags.filter((tag) => tag.type === filterType);
+  const filteredTags = tags
+    .filter((tag) => tag.type === filterType)
+    .sort((a, b) => b.count - a.count);
 
   const handleTagClick = (tagName: string) => {
     router.push(`/?search=${encodeURIComponent(tagName)}`);
@@ -19,7 +21,9 @@ export default function TagList({ tags, filterType }: TagListProps) {
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4 text-center capitalize">{filterType}s</h1>
+      <h1 className="text-2xl font-bold mb-4 text-center capitalize">
+        {filterType}s
+      </h1>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
         {filteredTags.map((tag) => (
