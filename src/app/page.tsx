@@ -4,6 +4,8 @@ import { searchTags } from "./utils/searchTags"; // Importamos la función de b�
 import { getIconForType } from "./utils/getIconForType"; // Importamos la función de iconos
 import { TagInfo } from "./types"; // Importamos los tipos de datos
 import { useDataContext } from "./contexts/DataContext";
+import { useSearchParams } from "next/navigation";
+import { parseTagsFromString } from "./utils/parseTags";
 
 // El componente principal de la página
 export default function HomePage() {
@@ -19,16 +21,24 @@ export default function HomePage() {
   const [isInputFocused, setIsInputFocused] = useState<boolean>(false);
   const [isSelectingSuggestion, setIsSelectingSuggestion] = useState(false);
 
+  const searchParams = useSearchParams();
+
   // Create a ref for the search input div
   const searchInputDivRef = useRef<HTMLDivElement | null>(null);
   const suggestionsDiv = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  // Efecto para cargar las imágenes cuando el componente se monta
+  // Este efecto sincroniza la búsqueda con el input si viene desde un link externo
   useEffect(() => {
-    manageSuggestions([]); // Limpiamos las sugerencias al cargar
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // El array vacío asegura que solo se ejecute una vez al cargar el componente
+    const query = searchParams.get("search") || "";
+    setSearchText(query);
+
+    if (images.length > 0) {
+      const tags = parseTagsFromString(query); // Parseamos los tags desde el string
+      setSelectedTags(tags); // Actualiza los tags seleccionados
+      applyFilters(tags); // Aplica los filtros
+    } // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, images]);
 
   useEffect(() => {
     if (suggestionsDiv.current) {
@@ -45,9 +55,17 @@ export default function HomePage() {
     const value = e.target.value;
     setSearchText(value);
 
+    // Si el input está vacío, reseteamos todo
+    if (value.trim() === "") {
+      setSelectedTags([]);
+      manageSuggestions([]);
+      return;
+    }
+
     // Buscamos sugerencias solo del último término escrito
-    const terms = value.split(",").map((term) => term.trim());
+    const terms = parseTagsFromString(value);
     const lastTerm = terms[terms.length - 1];
+    setSelectedTags(terms); // Actualizamos los tags seleccionados
 
     const results = searchTags(tagsIndex, lastTerm);
     if (
@@ -62,12 +80,11 @@ export default function HomePage() {
 
   // Función para agregar un tag seleccionado desde sugerencias
   function handleSelectSuggestion(suggestion: TagInfo) {
-    const terms = searchText.split(",").map((term) => term.trim());
+    const terms = parseTagsFromString(searchText); // Obtenemos los términos actuales
     terms[terms.length - 1] = suggestion.name; // Reemplazamos solo el último término escrito
-    const updatedTags = terms.filter(Boolean); // Quitamos posibles vacíos
 
-    setSelectedTags(updatedTags); // Actualizamos los tags seleccionados
-    setSearchText(updatedTags.join(", ") + ", "); // Actualizamos el input
+    setSelectedTags(terms); // Actualizamos los tags seleccionados
+    setSearchText(terms.join(", ") + ", "); // Actualizamos el input
 
     manageSuggestions([]); // Limpiamos sugerencias
 
@@ -94,38 +111,27 @@ export default function HomePage() {
   }
 
   // Función para aplicar el filtro de imágenes
-  function applyFilters() {
-    // Dividir el texto actual en el input en tags
-    const terms = searchText
-      .split(",")
-      .map((term) => term.trim())
-      .filter(Boolean);
-
-    if (terms.length === 0) {
+  function applyFilters(tags?: string[]) {
+    const tagsToUse = tags ?? selectedTags; // Si no se pasan tags, usamos los seleccionados
+    console.log("Tags a usar:", tagsToUse);
+    if (tagsToUse.length === 0) {
       setSelectedTags([]); // ¡Si no hay texto, borra los tags seleccionados también!
       setFilteredImages(images); // Muestra todas las imágenes
       manageSuggestions([]); // Borra sugerencias
       return;
     }
 
-    const tagsToFilter = terms.length > 0 ? terms : selectedTags;
-
-    if (tagsToFilter.length === 0) {
-      setFilteredImages(images);
+    const filtered = images.filter((img) => {
+      const allTags = [...img.tags, ...img.character_tags, ...img.ratings];
+      return tagsToUse.every((tag) => allTags.includes(tag));
+    });
+    if (filtered.length === 0) {
+      setError("No se encontraron imágenes con esos tags.");
     } else {
-      const filtered = images.filter((img) => {
-        const allTags = [...img.tags, ...img.character_tags, ...img.ratings];
-        return tagsToFilter.every((tag) => allTags.includes(tag));
-      });
-      if (filtered.length === 0) {
-        setError("No se encontraron imágenes con esos tags.");
-      }
-      else {
-        setError(null); // Limpiamos el error si hay resultados
-      }
-      // Actualizamos las imágenes filtradas
-      setFilteredImages(filtered);
+      setError(null); // Limpiamos el error si hay resultados
     }
+    // Actualizamos las imágenes filtradas
+    setFilteredImages(filtered);
     manageSuggestions([]);
   }
 
@@ -158,86 +164,85 @@ export default function HomePage() {
 
   return (
     <div>
-      {error ? (
-        <div className="error-message">{error}</div>
-      ) : (
-        <>
-          <div className="search-bar">
-            <div className="search-input-div" ref={searchInputDivRef}>
-              <input
-                className="search-input"
-                type="text"
-                value={searchText}
-                ref={inputRef}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
-                onFocus={() => setIsInputFocused(true)}
-                onBlur={() => {
-                  setTimeout(() => {
-                    if (!isSelectingSuggestion) {
-                      setIsInputFocused(false);
-                      manageSuggestions([]); // 👈 También limpiamos sugerencias al salir del input
-                    }
-                  }, 100); // Un pequeño delay para que el click en la sugerencia termine primero
-                }}
-                placeholder="Escribe tags separados por comas"
-              />
+      <div className="search-bar">
+        <div className="search-input-div" ref={searchInputDivRef}>
+          <input
+            className="search-input"
+            type="text"
+            value={searchText}
+            ref={inputRef}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            onFocus={() => setIsInputFocused(true)}
+            onBlur={() => {
+              setTimeout(() => {
+                if (!isSelectingSuggestion) {
+                  setIsInputFocused(false);
+                  manageSuggestions([]); // 👈 También limpiamos sugerencias al salir del input
+                }
+              }, 100); // Un pequeño delay para que el click en la sugerencia termine primero
+            }}
+            placeholder="Escribe tags separados por comas"
+          />
 
-              <div className="search-icon" onClick={applyFilters}>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-              </div>
-            </div>
-            <div className="suggestions" ref={suggestionsDiv}>
-              {suggestions.map((suggestion, index) => (
-                <div
-                  key={suggestion.name}
-                  className={`suggestion-item ${
-                    index === activeSuggestionIndex ? "active" : ""
-                  }`}
-                  onMouseDown={() => setIsSelectingSuggestion(true)} // <- antes de hacer click
-                  onClick={() => {
-                    handleSelectSuggestion(suggestion);
-                    setIsSelectingSuggestion(false); // <- después de seleccionar
-                  }}
-                >
-                  <span>{getIconForType(suggestion.type)} </span>{" "}
-                  {/* Muestra el icono */}
-                  <span>
-                    {suggestion.name} <small>({suggestion.count})</small>
-                  </span>{" "}
-                  {/* Muestra el nombre del tag */}
-                </div>
-              ))}
-            </div>
+          <div
+            className="search-icon"
+            onClick={() => {
+              applyFilters();
+            }}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
           </div>
-
-          {/* Galería de imágenes */}
-          <div className="gallery">
-            {filteredImages.map((img) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                key={img.image}
-                src={`images/${img.image}`}
-                alt="tagged"
-                className="image-card"
-              />
-            ))}
-          </div>
-        </>
-      )}
+        </div>
+        <div className="suggestions" ref={suggestionsDiv}>
+          {suggestions.map((suggestion, index) => (
+            <div
+              key={suggestion.name}
+              className={`suggestion-item ${
+                index === activeSuggestionIndex ? "active" : ""
+              }`}
+              onMouseDown={() => setIsSelectingSuggestion(true)} // <- antes de hacer click
+              onClick={() => {
+                handleSelectSuggestion(suggestion);
+                setIsSelectingSuggestion(false); // <- después de seleccionar
+              }}
+            >
+              <span>{getIconForType(suggestion.type)} </span>{" "}
+              {/* Muestra el icono */}
+              <span>
+                {suggestion.name} <small>({suggestion.count})</small>
+              </span>{" "}
+              {/* Muestra el nombre del tag */}
+            </div>
+          ))}
+        </div>
+      </div>
+      {error ? <div className="error-message">{error}</div> : <></>}
+      {/* Galería de imágenes */}
+      <div className="gallery">
+        {filteredImages.map((img) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={img.image}
+            src={`images/${img.image}`}
+            alt="tagged"
+            className="image-card"
+          />
+        ))}
+      </div>
     </div>
   );
 }
