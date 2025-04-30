@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Navbar from "./components/Navbar";
 import { DataProvider } from "./contexts/DataContext";
+import { ToastContainer } from "react-toastify";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -18,7 +19,10 @@ export default function RootLayout({
       <body>
         <Navbar />
         <DataProvider>
-          <main>{children}</main>
+          <main>
+            {children}{" "}
+            <ToastContainer position="bottom-right" autoClose={3000} />
+          </main>
         </DataProvider>
       </body>
     </html>

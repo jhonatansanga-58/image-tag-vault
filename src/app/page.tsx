@@ -6,6 +6,7 @@ import { TagInfo } from "./types"; // Importamos los tipos de datos
 import { useDataContext } from "./contexts/DataContext";
 import { useSearchParams } from "next/navigation";
 import { parseTagsFromString } from "./utils/parseTags";
+import { copyImageToClipboard } from "./utils/copyImageToClipboard";
 
 // El componente principal de la página
 export default function HomePage() {
@@ -240,6 +241,7 @@ export default function HomePage() {
             src={`images/${img.image}`}
             alt="tagged"
             className="image-card"
+            onClick={() => copyImageToClipboard(`images/${img.image}`)}
           />
         ))}
       </div>
