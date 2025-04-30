@@ -23,14 +23,19 @@ export async function fetchData(): Promise<ImageData[]> {
     const images: ImageData[] = parsed.data
       .filter((row) => row[0] !== "image") // <--- esto salta la cabecera
       .map((row) => {
-        const [image, ratings, character_tags, tags] = row;
+        const [image, created_at, ratings, character_tags, tags] = row;
         return {
           image: image || "",
+          created_at: created_at || "",
           ratings: ratings ? ratings.split(";") : [],
           character_tags: character_tags ? character_tags.split(";") : [],
           tags: tags ? tags.split(";") : [],
         };
-      });
+      })
+      .sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
 
     return images;
   } catch (error) {
