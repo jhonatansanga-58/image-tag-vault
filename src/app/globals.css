@@ -1,4 +1,4 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 * {
   margin: 0;
@@ -25,19 +25,26 @@ a {
   border-bottom: 1px solid #ccc;
 }
 
+.search-and-random {
+  padding: 10px 30px;
+  display: flex;
+  justify-content: space-between; /* Distribuye espacio entre los elementos */
+  align-items: center; /* Alinea verticalmente en el centro */
+  width: 100%;
+}
+
 .search-bar {
-  padding-top: 20px;
-  width: auto;
+  flex-grow: 1; /* Hace que la barra de búsqueda ocupe todo el espacio disponible */
   display: flex;
   flex-direction: column;
-  align-items: center;
   position: relative;
+  margin: 0px 10px;
 }
 
 .search-input-div {
   background-color: white;
   border-radius: 20px 20px 0 0;
-  width: 500px;
+  width: 100%;
   min-height: 50px;
   overflow: hidden;
   display: flex;
@@ -66,7 +73,7 @@ a {
 
 .suggestions {
   background: white;
-  width: 500px;
+  width: 100%;
   border: 1px solid #b9b9b9;
   border-top: none;
   position: absolute;
@@ -91,8 +98,27 @@ a {
   display: block;
 }
 
-.suggestion-item:hover, .active {
+.suggestion-item:hover,
+.active {
   background: rgb(227, 227, 227);
+}
+
+.random-count {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+  border-radius: 20px;
+  padding: 10px;
+  border: 1px solid #b9b9b9;
+}
+
+.random-count label {
+  font-size: 16px;
+}
+
+.random-count input {
+  text-align: center;
 }
 
 .gallery {
