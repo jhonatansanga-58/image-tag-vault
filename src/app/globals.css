@@ -3,6 +3,7 @@
 * {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
 body {
@@ -21,8 +22,9 @@ a {
   display: flex;
   gap: 2rem;
   padding: 1rem;
-  background: white;
-  border-bottom: 1px solid #ccc;
+  background: #1c85fd;
+  border-bottom: 3px solid #ccc;
+  color: white;
 }
 
 .search-and-random {
@@ -51,6 +53,7 @@ a {
   justify-content: space-between;
   border: 1px solid #b9b9b9;
   border-bottom: none;
+  z-index: 10;
 }
 
 .search-input {
@@ -71,6 +74,10 @@ a {
   cursor: pointer;
 }
 
+.search-icon:hover {
+  background-color: #ccc;
+}
+
 .suggestions {
   background: white;
   width: 100%;
@@ -85,6 +92,7 @@ a {
 .search-input-div.no-suggestions {
   border-radius: 20px; /* Redondear todos los bordes si no hay sugerencias */
   border-bottom: 1px solid #b9b9b9; /* Volver a poner el borde abajo */
+  z-index: 0;
 }
 
 .suggestions::-webkit-scrollbar {
@@ -115,10 +123,16 @@ a {
 
 .random-count label {
   font-size: 16px;
+  margin-left: 10px;
 }
 
 .random-count input {
   text-align: center;
+}
+
+.random-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .gallery {

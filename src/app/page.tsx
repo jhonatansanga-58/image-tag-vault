@@ -251,6 +251,7 @@ export default function HomePage() {
             Imágenes aleatorias:
             <input
               type="number"
+              className="random-input"
               min="0"
               max={filteredImages.length}
               value={randomCount}
