@@ -7,6 +7,7 @@ import { useDataContext } from "./contexts/DataContext";
 import { useSearchParams } from "next/navigation";
 import { parseTagsFromString } from "./utils/parseTags";
 import { copyImageToClipboard } from "./utils/copyImageToClipboard";
+import { Masonry } from "masonic";
 
 // El componente principal de la página
 export default function HomePage() {
@@ -32,7 +33,13 @@ export default function HomePage() {
   const suggestionsDiv = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  // Este efecto sincroniza la búsqueda con el input si viene desde un link externo
+  // Para asegurar el render en cliente
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // sincroniza la búsqueda con el input si viene desde un link externo
   useEffect(() => {
     const query = searchParams.get("search") || "";
     setSearchText(query);
@@ -177,6 +184,18 @@ export default function HomePage() {
     setRandomImages(selected);
   }
 
+  const renderImage = ({ data: { image } }: { data: { image: string } }) => (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      key={image}
+      src={`images/${image}`}
+      alt="tagged"
+      className="masonry-img"
+      loading="lazy"
+      onClick={() => copyImageToClipboard(`images/${image}`)}
+    />
+  );
+
   return (
     <div>
       <div className="search-and-random">
@@ -267,21 +286,18 @@ export default function HomePage() {
         </div>
       </div>
       {error ? <div className="error-message">{error}</div> : <></>}
-      {/* Galería de imágenes */}
-      <div className="gallery">
-        {(randomImages.length > 0 ? randomImages : filteredImages).map(
-          (img) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              key={img.image}
-              src={`images/${img.image}`}
-              alt="tagged"
-              className="image-card"
-              onClick={() => copyImageToClipboard(`images/${img.image}`)}
-            />
-          )
-        )}
-      </div>
+      {/* Galería con Masonry */}
+      {isClient && (
+        <div className="masonry-grid">
+          <Masonry
+            items={randomImages.length > 0 ? randomImages : filteredImages}
+            columnGutter={8}
+            columnWidth={280}
+            overscanBy={1}
+            render={renderImage}
+          />
+        </div>
+      )}
     </div>
   );
 }
