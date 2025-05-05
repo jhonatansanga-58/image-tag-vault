@@ -188,16 +188,40 @@ export default function HomePage() {
     // eslint-disable-next-line @next/next/no-img-element
     <img
       key={image}
-      src={`images/${image}`}
+      src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${image}`}
       alt="tagged"
       className="masonry-img"
       loading="lazy"
-      onClick={() => copyImageToClipboard(`images/${image}`)}
+      onClick={() =>
+        copyImageToClipboard(`${process.env.NEXT_PUBLIC_IMAGE_URL}${image}`)
+      }
     />
   );
+  const [currentPage, setCurrentPage] = useState(1);
+  const imagesPerPage = 10;
+  const indexOfLastImage = currentPage * imagesPerPage;
+  const indexOfFirstImage = indexOfLastImage - imagesPerPage;
+  const allImages = randomImages.length > 0 ? randomImages : filteredImages;
+  const currentImages = allImages.slice(indexOfFirstImage, indexOfLastImage);
+  useEffect(() => {
+    const handleKeyDown = (e: { key: string }) => {
+      if (e.key === "ArrowRight") {
+        if (indexOfLastImage < allImages.length) {
+          setCurrentPage((prev) => prev + 1);
+        }
+      }
+      if (e.key === "ArrowLeft") {
+        if (currentPage > 1) {
+          setCurrentPage((prev) => prev - 1);
+        }
+      }
+    };
 
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [currentPage, indexOfLastImage, allImages.length]);
   return (
-    <div>
+    <div className="home-page">
       <div className="search-and-random">
         <div className="search-bar">
           <div className="search-input-div" ref={searchInputDivRef}>
@@ -290,14 +314,32 @@ export default function HomePage() {
       {isClient && (
         <div className="masonry-grid">
           <Masonry
-            items={randomImages.length > 0 ? randomImages : filteredImages}
+            key={`${
+              randomImages.length > 0 ? "random" : "filtered"
+            }-${currentPage}`}
+            items={currentImages}
             columnGutter={8}
             columnWidth={280}
-            overscanBy={1}
+            overscanBy={2}
             render={renderImage}
           />
         </div>
       )}
+      <div className="pagination-controls">
+        <button
+          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+          disabled={currentPage === 1}
+        >
+          ⬅ Anterior
+        </button>
+        <span>Página {currentPage}</span>
+        <button
+          onClick={() => setCurrentPage((prev) => prev + 1)}
+          disabled={indexOfLastImage >= allImages.length}
+        >
+          Siguiente ➡
+        </button>
+      </div>
     </div>
   );
 }

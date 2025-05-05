@@ -1,8 +1,6 @@
 @import "tailwindcss";
 
 * {
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
 }
 
@@ -16,6 +14,10 @@ body {
 a {
   text-decoration: none;
   color: inherit;
+}
+
+.home-page {
+  overflow-x: hidden;
 }
 
 .navbar {
@@ -135,12 +137,8 @@ a {
   margin: 0;
 }
 
-.gallery {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  padding: 10px;
-  gap: 10px;
+.masonry-grid {
+  margin: 35px;
 }
 
 .masonry-img {
@@ -153,19 +151,16 @@ a {
   will-change: transform;
   margin-bottom: 10px;
 }
+
 .masonry-img:hover {
-  transform: scale(1.24) translateY(-5px);
+  transform: scale(1.2) translateY(-15px);
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
   z-index: 10;
 }
 
-.masonry-grid {
-  margin: 35px;
-}
-
 .tag-button {
-  padding: 0.5rem 1rem;
-  margin: 0.5rem;
+  padding: 0.2rem 1rem;
+  margin: 0.2rem;
   background: #0070f3;
   color: white;
   border-radius: 9999px;
@@ -175,4 +170,37 @@ a {
 
 .tag-button:hover {
   background: #0059c1;
+}
+
+.pagination-controls {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.8);
+  padding: 10px 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 999;
+}
+
+.pagination-controls button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+}
+
+.pagination-controls button:disabled {
+  background-color: #aaa;
+  cursor: not-allowed;
+}
+
+.pagination-controls span {
+  font-weight: bold;
 }
