@@ -198,7 +198,7 @@ export default function HomePage() {
     />
   );
   const [currentPage, setCurrentPage] = useState(1);
-  const imagesPerPage = 10;
+  const imagesPerPage = 100;
   const indexOfLastImage = currentPage * imagesPerPage;
   const indexOfFirstImage = indexOfLastImage - imagesPerPage;
   const allImages = randomImages.length > 0 ? randomImages : filteredImages;
@@ -316,10 +316,10 @@ export default function HomePage() {
           <Masonry
             key={`${
               randomImages.length > 0 ? "random" : "filtered"
-            }-${currentPage}`}
+            }-${currentPage}-${Math.floor(Math.random() * 1e7)}`}
             items={currentImages}
-            columnGutter={8}
-            columnWidth={280}
+            columnGutter={5}
+            columnWidth={230}
             overscanBy={2}
             render={renderImage}
           />
