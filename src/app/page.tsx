@@ -1,13 +1,13 @@
 "use client"; // Indica que este archivo es de cliente y permite el uso de hooks y efectos de React
-import { useEffect, useState, useRef } from "react"; // Import useRef
+import { useEffect, useState, useRef, useMemo } from "react"; // Import useRef
 import { searchTags } from "./utils/searchTags"; // Importamos la función de búsqueda
 import { getIconForType } from "./utils/getIconForType"; // Importamos la función de iconos
-import { TagInfo } from "./types"; // Importamos los tipos de datos
+import { ImageData, TagInfo } from "./types"; // Importamos los tipos de datos
 import { useDataContext } from "./contexts/DataContext";
 import { useSearchParams } from "next/navigation";
 import { parseTagsFromString } from "./utils/parseTags";
-import { copyImageToClipboard } from "./utils/copyImageToClipboard";
 import { Masonry } from "masonic";
+import ImageModal from "./components/ImageModal";
 
 // El componente principal de la página
 export default function HomePage() {
@@ -183,26 +183,32 @@ export default function HomePage() {
     const selected = shuffled.slice(0, count);
     setRandomImages(selected);
   }
+  const [selectedImage, setSelectedImage] = useState<ImageData | null>(null);
 
-  const renderImage = ({ data: { image } }: { data: { image: string } }) => (
+  const renderImage = ({ data }: { data: ImageData }) => (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      key={image}
-      src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${image}`}
+      key={data.image}
+      src={`${process.env.NEXT_PUBLIC_IMAGE_URL}${data.image}`}
       alt="tagged"
       className="masonry-img"
       loading="lazy"
-      onClick={() =>
-        copyImageToClipboard(`${process.env.NEXT_PUBLIC_IMAGE_URL}${image}`)
-      }
+      onClick={() => setSelectedImage(data)}
     />
   );
   const [currentPage, setCurrentPage] = useState(1);
+
   const imagesPerPage = 100;
   const indexOfLastImage = currentPage * imagesPerPage;
   const indexOfFirstImage = indexOfLastImage - imagesPerPage;
   const allImages = randomImages.length > 0 ? randomImages : filteredImages;
   const currentImages = allImages.slice(indexOfFirstImage, indexOfLastImage);
+  const masonryKey = useMemo(
+    () => Math.floor(Math.random() * 1e7),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [currentPage, randomImages, filteredImages]
+  );
+
   useEffect(() => {
     const handleKeyDown = (e: { key: string }) => {
       if (e.key === "ArrowRight") {
@@ -314,9 +320,7 @@ export default function HomePage() {
       {isClient && (
         <div className="masonry-grid">
           <Masonry
-            key={`${
-              randomImages.length > 0 ? "random" : "filtered"
-            }-${currentPage}-${Math.floor(Math.random() * 1e7)}`}
+            key={`masonry-${masonryKey}`}
             items={currentImages}
             columnGutter={5}
             columnWidth={230}
@@ -340,6 +344,29 @@ export default function HomePage() {
           Siguiente ➡
         </button>
       </div>
+
+      {selectedImage && (
+        <ImageModal
+          imageData={selectedImage}
+          onClose={() => setSelectedImage(null)}
+          onPrev={() => {
+            const index = currentImages.findIndex(
+              (img) => img.image === selectedImage.image
+            );
+            if (index > 0) {
+              setSelectedImage(currentImages[index - 1]);
+            }
+          }}
+          onNext={() => {
+            const index = currentImages.findIndex(
+              (img) => img.image === selectedImage.image
+            );
+            if (index < currentImages.length - 1) {
+              setSelectedImage(currentImages[index + 1]);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }
