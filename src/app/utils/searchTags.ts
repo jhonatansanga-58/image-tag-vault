@@ -13,5 +13,5 @@ export function searchTags(tagsIndex: TagInfo[], query: string): TagInfo[] {
   return tagsIndex
     .filter((tag) => tag.name.toLowerCase().includes(lowerQuery))
     .sort((a, b) => b.count - a.count) // Opcional: ordenar para mostrar primero los más populares
-    .slice(0, 10); // Limitamos a las 10 mejores sugerencias
+    .slice(0, 20); // Limitamos a las 20 mejores sugerencias
 }
